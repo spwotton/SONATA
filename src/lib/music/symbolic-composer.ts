@@ -91,7 +91,7 @@ export function compose(options: ComposerOptions): SonataComposition {
       const primeGate = isPrimeSpoke(mod24Step);
       const ramseyGateOpen = useRamsey ? ramseyMasterGate(step, voiceIndex * 7) : true;
       const adaptGate = rng() < rvs.adaptability + 0.3;
-      const shouldPlay = useRamsey ? ramseyGateOpen && adaptGate : primeGate || adaptGate;
+      const shouldPlay = useRamsey ? primeGate && ramseyGateOpen && adaptGate : primeGate || adaptGate;
 
       if (shouldPlay) {
         const scaleDegree = scale[Math.floor(rng() * scale.length)];

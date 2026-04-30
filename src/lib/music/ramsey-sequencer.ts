@@ -53,12 +53,20 @@ export const RAMSEY_GATE_MATRIX: number[][] = RAMSEY_MATRIX_ROWS.map(row =>
   row.split("").map(bit => (bit === "1" ? 1 : 0)),
 );
 
-export function ramseyMask(step: number): number[] {
-  const rowIndex = mod(step, RAMSEY_STEPS);
-  const shift = Math.floor(step / RAMSEY_STEPS);
-  const row = RAMSEY_GATE_MATRIX[rowIndex];
+const RAMSEY_SHIFTED_MASKS: ReadonlyArray<ReadonlyArray<number>> = Array.from(
+  { length: RAMSEY_STEPS * RAMSEY_GATE_BITS },
+  (_, step) => {
+    const rowIndex = mod(step, RAMSEY_STEPS);
+    const shift = Math.floor(step / RAMSEY_STEPS);
+    const row = RAMSEY_GATE_MATRIX[rowIndex];
+    return row.map((_, index) => row[mod(index - shift, RAMSEY_GATE_BITS)]);
+  },
+);
 
-  return row.map((_, index) => row[mod(index - shift, RAMSEY_GATE_BITS)]);
+export function ramseyMask(step: number): ReadonlyArray<number> {
+  const rowIndex = mod(step, RAMSEY_STEPS);
+  const shift = mod(Math.floor(step / RAMSEY_STEPS), RAMSEY_GATE_BITS);
+  return RAMSEY_SHIFTED_MASKS[(shift * RAMSEY_STEPS) + rowIndex];
 }
 
 export function ramseyGate(step: number, bitIndex = 0): boolean {
@@ -76,7 +84,7 @@ export function ramseyVelocity(step: number, bitIndex = 0): number {
 export class RamseySequencer {
   private step = 0;
 
-  nextGatePattern(): number[] {
+  nextGatePattern(): ReadonlyArray<number> {
     const pattern = ramseyMask(this.step);
     this.step = mod(this.step + 1, RAMSEY_MASTER_STEPS);
     return pattern;
