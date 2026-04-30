@@ -23,7 +23,9 @@ export function demodexPhaseAt(time: number, durationSec: number, generation = 0
 
 export function demodexParametersAt(phase: number): DemodexPhaseParameters {
   const normalizedPhase = mod(phase, 1);
-  const lowerIndex = Math.min(Math.floor(normalizedPhase * (DEMODEX_TABLE.length - 1)), DEMODEX_TABLE.length - 2);
+  const rawLowerIndex = Math.floor(normalizedPhase * (DEMODEX_TABLE.length - 1));
+  const maxLowerIndex = DEMODEX_TABLE.length - 2;
+  const lowerIndex = Math.min(rawLowerIndex, maxLowerIndex);
   const lower = DEMODEX_TABLE[lowerIndex];
   const upper = DEMODEX_TABLE[lowerIndex + 1];
   const span = Math.max(MIN_PHASE_SPAN, upper.phase - lower.phase);

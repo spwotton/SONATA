@@ -2,6 +2,7 @@ export const GOOSE_GAP = 0.02;
 export const HALL_ETA = 0.09;
 export const MIN_HALL_ETA = 0.085;
 export const MAX_HALL_ETA = 0.095;
+export const GOOSE_GAP_TO_ETA_SCALE = 10;
 
 export function gooseGapAtPhase(phase: number): number {
   const normalizedPhase = phase - Math.floor(phase);
@@ -27,8 +28,7 @@ export function scheduleHallEta(conditionNumber: number, eta = HALL_ETA): number
 }
 
 export function etaFromGooseGap(gap: number, eta = HALL_ETA): number {
-  const gapToEtaScale = 10;
-  return clamp(eta + gap / gapToEtaScale, MIN_HALL_ETA, MAX_HALL_ETA);
+  return clamp(eta + gap / GOOSE_GAP_TO_ETA_SCALE, MIN_HALL_ETA, MAX_HALL_ETA);
 }
 
 export function gooseGapScore(value: number): number {

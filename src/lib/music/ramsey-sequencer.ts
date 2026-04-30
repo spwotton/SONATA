@@ -74,7 +74,7 @@ export function ramseyGate(step: number, bitIndex = 0): boolean {
 }
 
 export function ramseyMasterGate(step: number, bitIndex = 0): boolean {
-  return isPrimeSpoke(step) && ramseyGate(step, bitIndex);
+  return isPrimeSpoke(mod(step, 24)) && ramseyGate(step, bitIndex);
 }
 
 export function ramseyVelocity(step: number, bitIndex = 0): number {
