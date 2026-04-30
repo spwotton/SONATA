@@ -1,3 +1,5 @@
+import { isPrimeSpoke } from "./antikythera-sequencer";
+
 export const RAMSEY_STEPS = 42;
 export const RAMSEY_GATE_BITS = 42;
 export const RAMSEY_MASTER_STEPS = 168;
@@ -51,8 +53,6 @@ export const RAMSEY_GATE_MATRIX: number[][] = RAMSEY_MATRIX_ROWS.map(row =>
   row.split("").map(bit => (bit === "1" ? 1 : 0)),
 );
 
-const PRIME_SPOKE_RESIDUES = new Set([1, 5, 7, 11, 13, 17, 19, 23]);
-
 export function ramseyMask(step: number): number[] {
   const rowIndex = mod(step, RAMSEY_STEPS);
   const shift = Math.floor(step / RAMSEY_STEPS);
@@ -66,7 +66,7 @@ export function ramseyGate(step: number, bitIndex = 0): boolean {
 }
 
 export function ramseyMasterGate(step: number, bitIndex = 0): boolean {
-  return PRIME_SPOKE_RESIDUES.has(mod(step, 24)) && ramseyGate(step, bitIndex);
+  return isPrimeSpoke(step) && ramseyGate(step, bitIndex);
 }
 
 export function ramseyVelocity(step: number, bitIndex = 0): number {

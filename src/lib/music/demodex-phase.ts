@@ -14,6 +14,8 @@ const DEMODEX_TABLE: DemodexPhaseParameters[] = [
   { phase: 1.0, kScale: 0.78, carrierFreq: 7.4, tonicShift: 0, noiseDensity: 0.58 },
 ];
 
+const MIN_PHASE_SPAN = 0.000001;
+
 export function demodexPhaseAt(time: number, durationSec: number, generation = 0): number {
   const safeDuration = Math.max(1, durationSec);
   return mod(time / safeDuration + generation * 0.0001, 1);
@@ -23,8 +25,9 @@ export function demodexParametersAt(phase: number): DemodexPhaseParameters {
   const normalizedPhase = mod(phase, 1);
   const nextIndex = DEMODEX_TABLE.findIndex(point => point.phase >= normalizedPhase);
   const upper = DEMODEX_TABLE[nextIndex === -1 ? DEMODEX_TABLE.length - 1 : nextIndex];
-  const lower = DEMODEX_TABLE[Math.max(0, (nextIndex === -1 ? DEMODEX_TABLE.length : nextIndex) - 1)];
-  const span = Math.max(0.000001, upper.phase - lower.phase);
+  const lowerIndex = Math.max(0, (nextIndex === -1 ? DEMODEX_TABLE.length : nextIndex) - 1);
+  const lower = DEMODEX_TABLE[lowerIndex];
+  const span = Math.max(MIN_PHASE_SPAN, upper.phase - lower.phase);
   const amount = (normalizedPhase - lower.phase) / span;
 
   return {

@@ -96,7 +96,9 @@ export function compose(options: ComposerOptions): SonataComposition {
       if (shouldPlay) {
         const scaleDegree = scale[Math.floor(rng() * scale.length)];
         const octaveShift = voiceOctaveOffset + (rng() < 0.15 ? (rng() > 0.5 ? 12 : -12) : 0);
-        const midi = rootMidi + Math.round(demodex.tonicShift) + Math.round(scaleDegree * demodex.kScale) + octaveShift;
+        const shiftedTonic = rootMidi + Math.round(demodex.tonicShift);
+        const scaledDegree = Math.round(scaleDegree * demodex.kScale);
+        const midi = shiftedTonic + scaledDegree + octaveShift;
         const clampedMidi = Math.max(24, Math.min(96, midi));
 
         const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4) * (1 - demodex.noiseDensity * 0.25);
