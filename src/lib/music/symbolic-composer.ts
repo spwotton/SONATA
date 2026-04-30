@@ -53,6 +53,8 @@ const ROUTE_TITLES: Record<MusicRoute, string> = {
   BLACK_SWAN_NOIR:   "Black Swan Noir",
 };
 
+const NOISE_DENSITY_VELOCITY_FACTOR = 0.25;
+
 function seededRandom(seed: number): () => number {
   let s = seed;
   return () => {
@@ -101,7 +103,7 @@ export function compose(options: ComposerOptions): SonataComposition {
         const midi = shiftedTonic + scaledDegree + octaveShift;
         const clampedMidi = Math.max(24, Math.min(96, midi));
 
-        const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4) * (1 - demodex.noiseDensity * 0.25);
+        const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4) * (1 - demodex.noiseDensity * NOISE_DENSITY_VELOCITY_FACTOR);
         const velocity = humanizeVelocity(Math.min(1, baseVelocity), gooseGap);
         const noteTime = humanizeTime(time + swing, gooseGap * 0.5);
         const noteDuration = beatSec * (0.4 + rng() * 0.5) * (1 + rvs.continuity * 0.3) * demodex.kScale;

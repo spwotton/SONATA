@@ -15,10 +15,11 @@ const DEMODEX_TABLE: DemodexPhaseParameters[] = [
 ];
 
 const MIN_PHASE_SPAN = 0.000001;
+const GENERATION_PHASE_OFFSET = 0.0001;
 
 export function demodexPhaseAt(time: number, durationSec: number, generation = 0): number {
   const safeDuration = Math.max(1, durationSec);
-  return mod(time / safeDuration + generation * 0.0001, 1);
+  return mod(time / safeDuration + generation * GENERATION_PHASE_OFFSET, 1);
 }
 
 export function demodexParametersAt(phase: number): DemodexPhaseParameters {

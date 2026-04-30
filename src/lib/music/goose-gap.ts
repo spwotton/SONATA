@@ -3,10 +3,14 @@ export const HALL_ETA = 0.09;
 export const MIN_HALL_ETA = 0.085;
 export const MAX_HALL_ETA = 0.095;
 export const GOOSE_GAP_TO_ETA_SCALE = 10;
+export const GOOSE_GAP_MODULATION_DEPTH = 0.5;
+export const CONDITION_LOWER_THRESHOLD = 50;
+export const CONDITION_UPPER_THRESHOLD = 100;
+export const ETA_ADJUSTMENT_STEP = 0.0005;
 
 export function gooseGapAtPhase(phase: number): number {
   const normalizedPhase = phase - Math.floor(phase);
-  return GOOSE_GAP * (1 + 0.5 * Math.sin(Math.PI * normalizedPhase));
+  return GOOSE_GAP * (1 + GOOSE_GAP_MODULATION_DEPTH * Math.sin(Math.PI * normalizedPhase));
 }
 
 export function humanizeTime(time: number, amount = GOOSE_GAP): number {
@@ -22,8 +26,8 @@ export function hallRegularize(value: number, target: number, eta = HALL_ETA): n
 }
 
 export function scheduleHallEta(conditionNumber: number, eta = HALL_ETA): number {
-  if (conditionNumber < 50) return clamp(eta + 0.0005, MIN_HALL_ETA, MAX_HALL_ETA);
-  if (conditionNumber > 100) return clamp(eta - 0.0005, MIN_HALL_ETA, MAX_HALL_ETA);
+  if (conditionNumber < CONDITION_LOWER_THRESHOLD) return clamp(eta + ETA_ADJUSTMENT_STEP, MIN_HALL_ETA, MAX_HALL_ETA);
+  if (conditionNumber > CONDITION_UPPER_THRESHOLD) return clamp(eta - ETA_ADJUSTMENT_STEP, MIN_HALL_ETA, MAX_HALL_ETA);
   return clamp(eta, MIN_HALL_ETA, MAX_HALL_ETA);
 }
 
