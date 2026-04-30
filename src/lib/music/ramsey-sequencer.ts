@@ -1,20 +1,100 @@
-export const RAMSEY_STEPS = 42;
+import { isPrimeSpoke } from "./antikythera-sequencer";
 
-export const RAMSEY_PATTERN: number[] = [
-  1, 1, 1, 0, 0, 0,
-  1, 1, 0, 1, 1, 0,
-  1, 0, 1, 1, 1, 0,
-  0, 0, 1, 1, 0, 0,
-  1, 1, 1, 1, 0, 1,
-  1, 0, 1, 1, 1, 0,
-  0, 1, 1, 1, 0, 0,
+export const RAMSEY_STEPS = 42;
+export const RAMSEY_GATE_BITS = 42;
+export const RAMSEY_MASTER_STEPS = 168;
+
+export const RAMSEY_MATRIX_ROWS = [
+  "001110000000111011011011101101110000000110",
+  "000111000000011101101111110110111000000011",
+  "100011100000001110110111011011011100000001",
+  "110001110000000111011011001101101110001000",
+  "111000111000000011101101100110110111000000",
+  "011100011100000001110110111111011011100000",
+  "001110001110000000111011011111101101110000",
+  "000111000111000000011101101100110110111000",
+  "000011100011100000001110110110011011011100",
+  "000001110001110000000111011011010101101110",
+  "000000111000111000000011101101101110110111",
+  "000000011100011100000001110110110011011011",
+  "100000001110001110000000111011011001101101",
+  "110000000111000111000000011101101101110110",
+  "111000000011100011100000001110110111111011",
+  "011100000001110001110000001111011011101101",
+  "101110000000111000111000000011101101100110",
+  "110111000000011100011100000001110110110011",
+  "011011100000001110001110000000111011011111",
+  "101101110000000111000111000000011101101111",
+  "110110111000000011100011100000001110110110",
+  "011011011100000001110001110000000111011011",
+  "111101101110000000111000111000000011101101",
+  "111110110111000000011100011100000001110110",
+  "110011011011100000001110001110000000111011",
+  "011001101101110000000111000111000000011101",
+  "101101110110111100000011100011100000001110",
+  "110111111011011100000001110001110000000111",
+  "011011101101101110000000111000111000000011",
+  "101101100110110111000000011100011100000001",
+  "110110110011011011100000001110001110000000",
+  "111011011101101101110000000111000111000000",
+  "011101101010110110111000000011100011100000",
+  "001110110110011011011100000001110001110000",
+  "000111011011001101101110000000111000111000",
+  "000011101101111110110111000000011100011100",
+  "000001110110111111011011100000001110001110",
+  "000000111011011001101101110000000111000111",
+  "000100011101101100110110111000000011100011",
+  "100000001110110110111011011100000001110001",
+  "110000000111011011111101101110000000111000",
+  "011000000011101101110110110111000000011100",
 ];
 
-export function ramseyGate(step: number, rotation = 0): boolean {
-  const index = ((step + rotation) % RAMSEY_STEPS + RAMSEY_STEPS) % RAMSEY_STEPS;
-  return RAMSEY_PATTERN[index] === 1;
+export const RAMSEY_GATE_MATRIX: number[][] = RAMSEY_MATRIX_ROWS.map(row =>
+  row.split("").map(bit => (bit === "1" ? 1 : 0)),
+);
+
+const ramseyShiftedMaskCache = new Map<string, ReadonlyArray<number>>();
+
+export function ramseyMask(step: number): ReadonlyArray<number> {
+  const rowIndex = mod(step, RAMSEY_STEPS);
+  const shift = mod(Math.floor(step / RAMSEY_STEPS), RAMSEY_GATE_BITS);
+  const cacheKey = `${shift}_${rowIndex}`;
+  const cachedMask = ramseyShiftedMaskCache.get(cacheKey);
+
+  if (cachedMask) return cachedMask;
+
+  const row = RAMSEY_GATE_MATRIX[rowIndex];
+  const mask = row.map((_, index) => row[mod(index - shift, RAMSEY_GATE_BITS)]);
+  ramseyShiftedMaskCache.set(cacheKey, mask);
+  return mask;
 }
 
-export function ramseyVelocity(step: number, rotation = 0): number {
-  return ramseyGate(step, rotation) ? 0.85 : 0.15;
+export function ramseyGate(step: number, bitIndex = 0): boolean {
+  return ramseyMask(step)[mod(bitIndex, RAMSEY_GATE_BITS)] === 1;
+}
+
+export function ramseyMasterGate(step: number, bitIndex = 0): boolean {
+  return isPrimeSpoke(mod(step, 24)) && ramseyGate(step, bitIndex);
+}
+
+export function ramseyVelocity(step: number, bitIndex = 0): number {
+  return ramseyGate(step, bitIndex) ? 0.85 : 0.15;
+}
+
+export class RamseySequencer {
+  private step = 0;
+
+  nextGatePattern(): ReadonlyArray<number> {
+    const pattern = ramseyMask(this.step);
+    this.step = mod(this.step + 1, RAMSEY_MASTER_STEPS);
+    return pattern;
+  }
+
+  reset(step = 0) {
+    this.step = mod(step, RAMSEY_MASTER_STEPS);
+  }
+}
+
+function mod(n: number, m: number): number {
+  return ((n % m) + m) % m;
 }
