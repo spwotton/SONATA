@@ -1,9 +1,10 @@
 import type { SonataComposition, NoteEvent, ChordEvent, MusicRoute, TuningMode, RVSState } from "./types";
 import { freqToMidi } from "./gos-tuning";
-import { humanizeTime, humanizeVelocity } from "./goose-gap";
+import { gooseGapAtPhase, humanizeTime, humanizeVelocity } from "./goose-gap";
 import { SMC_BAND } from "./smc-band";
 import { antikytheraAccent, lunarSwing, isPrimeSpoke } from "./antikythera-sequencer";
-import { ramseyGate } from "./ramsey-sequencer";
+import { demodexParametersAt, demodexPhaseAt } from "./demodex-phase";
+import { ramseyMasterGate } from "./ramsey-sequencer";
 
 export interface ComposerOptions {
   route: MusicRoute;
@@ -80,25 +81,28 @@ export function compose(options: ComposerOptions): SonataComposition {
 
     for (let beat = 0; beat < totalBeats; beat++) {
       const time = beat * beatSec;
+      const phase = demodexPhaseAt(time, durationSec, generation);
+      const demodex = demodexParametersAt(phase);
+      const gooseGap = gooseGapAtPhase(phase);
       const mod24Step = beat % 24;
       const accent = antikytheraAccent(mod24Step);
       const swing = lunarSwing(beat);
 
       const primeGate = isPrimeSpoke(mod24Step);
-      const ramseyGateOpen = useRamsey ? ramseyGate(step, voiceIndex * 7) : true;
+      const ramseyGateOpen = useRamsey ? ramseyMasterGate(step, voiceIndex * 7) : true;
       const adaptGate = rng() < rvs.adaptability + 0.3;
-      const shouldPlay = (primeGate || adaptGate) && ramseyGateOpen;
+      const shouldPlay = useRamsey ? ramseyGateOpen && adaptGate : primeGate || adaptGate;
 
       if (shouldPlay) {
         const scaleDegree = scale[Math.floor(rng() * scale.length)];
         const octaveShift = voiceOctaveOffset + (rng() < 0.15 ? (rng() > 0.5 ? 12 : -12) : 0);
-        const midi = rootMidi + scaleDegree + octaveShift;
+        const midi = rootMidi + Math.round(demodex.tonicShift) + Math.round(scaleDegree * demodex.kScale) + octaveShift;
         const clampedMidi = Math.max(24, Math.min(96, midi));
 
-        const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4);
-        const velocity = humanizeVelocity(Math.min(1, baseVelocity));
-        const noteTime = humanizeTime(time + swing, 0.01);
-        const noteDuration = beatSec * (0.4 + rng() * 0.5) * (1 + rvs.continuity * 0.3);
+        const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4) * (1 - demodex.noiseDensity * 0.25);
+        const velocity = humanizeVelocity(Math.min(1, baseVelocity), gooseGap);
+        const noteTime = humanizeTime(time + swing, gooseGap * 0.5);
+        const noteDuration = beatSec * (0.4 + rng() * 0.5) * (1 + rvs.continuity * 0.3) * demodex.kScale;
 
         notes.push({
           time: Math.max(0, noteTime),

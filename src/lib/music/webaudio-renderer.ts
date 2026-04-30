@@ -1,7 +1,7 @@
 import type { SonataComposition } from "./types";
 import { midiToFreq } from "./gos-tuning";
 import { SMC_BAND } from "./smc-band";
-import { GOOSE_GAP } from "./goose-gap";
+import { gooseGapAtPhase } from "./goose-gap";
 
 export async function renderComposition(composition: SonataComposition): Promise<AudioBuffer> {
   const sampleRate = 44100;
@@ -60,7 +60,8 @@ export async function renderComposition(composition: SonataComposition): Promise
     const env = offlineCtx.createGain();
     env.gain.setValueAtTime(0, startTime);
 
-    const attackTime = 0.06 + GOOSE_GAP;
+    const phase = composition.durationSec > 0 ? startTime / composition.durationSec : 0;
+    const attackTime = 0.06 + gooseGapAtPhase(phase);
     const releaseTime = 0.12;
     const peakGain = note.velocity * bandVoice.gain * 0.7;
 
