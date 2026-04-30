@@ -53,12 +53,12 @@ export const RAMSEY_GATE_MATRIX: number[][] = RAMSEY_MATRIX_ROWS.map(row =>
   row.split("").map(bit => (bit === "1" ? 1 : 0)),
 );
 
-const ramseyShiftedMaskCache = new Map<number, ReadonlyArray<number>>();
+const ramseyShiftedMaskCache = new Map<string, ReadonlyArray<number>>();
 
 export function ramseyMask(step: number): ReadonlyArray<number> {
   const rowIndex = mod(step, RAMSEY_STEPS);
   const shift = mod(Math.floor(step / RAMSEY_STEPS), RAMSEY_GATE_BITS);
-  const cacheKey = (shift * RAMSEY_STEPS) + rowIndex;
+  const cacheKey = `${shift}_${rowIndex}`;
   const cachedMask = ramseyShiftedMaskCache.get(cacheKey);
 
   if (cachedMask) return cachedMask;

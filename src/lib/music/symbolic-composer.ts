@@ -92,8 +92,9 @@ export function compose(options: ComposerOptions): SonataComposition {
 
       const primeGate = isPrimeSpoke(mod24Step);
       const ramseyGateOpen = useRamsey ? ramseyMasterGate(step, voiceIndex * 7) : true;
+      const ramseyPrimeOverlay = primeGate && ramseyGateOpen;
       const adaptGate = rng() < rvs.adaptability + 0.3;
-      const shouldPlay = useRamsey ? primeGate && ramseyGateOpen && adaptGate : primeGate || adaptGate;
+      const shouldPlay = useRamsey ? ramseyPrimeOverlay && adaptGate : primeGate || adaptGate;
 
       if (shouldPlay) {
         const scaleDegree = scale[Math.floor(rng() * scale.length)];
@@ -104,7 +105,7 @@ export function compose(options: ComposerOptions): SonataComposition {
         const clampedMidi = Math.max(24, Math.min(96, midi));
 
         const baseVelocity = voice.gain * accent * (0.6 + rvs.coherence * 0.4) * (1 - demodex.noiseDensity * NOISE_DENSITY_VELOCITY_FACTOR);
-        const velocity = humanizeVelocity(Math.min(1, baseVelocity), gooseGap);
+        const velocity = humanizeVelocity(clamp01(baseVelocity), gooseGap);
         const noteTime = humanizeTime(time + swing, gooseGap * 0.5);
         const noteDuration = beatSec * (0.4 + rng() * 0.5) * (1 + rvs.continuity * 0.3) * demodex.kScale;
 
@@ -157,4 +158,8 @@ export function compose(options: ComposerOptions): SonataComposition {
     prompt: `${route} • ${tuning} tuning • ${effectiveTempo} BPM • root ${rootHz.toFixed(3)} Hz`,
     createdAt: Date.now(),
   };
+}
+
+function clamp01(x: number): number {
+  return Math.max(0, Math.min(1, x));
 }

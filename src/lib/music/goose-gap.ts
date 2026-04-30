@@ -31,7 +31,7 @@ export function scheduleHallEta(conditionNumber: number, eta = HALL_ETA): number
   return clamp(eta, MIN_HALL_ETA, MAX_HALL_ETA);
 }
 
-export function etaFromGooseGap(gap: number, eta = HALL_ETA): number {
+export function etaWithGooseGapAdjustment(gap: number, eta = HALL_ETA): number {
   return clamp(eta + gap / GOOSE_GAP_TO_ETA_SCALE, MIN_HALL_ETA, MAX_HALL_ETA);
 }
 
